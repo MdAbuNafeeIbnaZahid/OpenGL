@@ -1,0 +1,77 @@
+# depslib dependency file v1.0
+1522912833 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/main.cpp
+	<GLUT/glut.h>
+	<GL/glut.h>
+	<stdlib.h>
+	<bits/stdc++.h>
+
+1400929863 /usr/include/GL/glut.h
+	"freeglut_std.h"
+
+1400929863 /usr/include/GL/freeglut_std.h
+	<windows.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdlib.h>
+
+1522734679 /usr/include/GL/gl.h
+	"gl_mangle.h"
+	<windows.h>
+	<GL/glext.h>
+
+1522734679 /usr/include/GL/gl_mangle.h
+
+1522734679 /usr/include/GL/glext.h
+	<windows.h>
+	<stddef.h>
+	<inttypes.h>
+	<inttypes.h>
+	<inttypes.h>
+	<stdint.h>
+	<stdint.h>
+	<inttypes.h>
+
+1515984540 /usr/include/inttypes.h
+	<features.h>
+	<stdint.h>
+	<stddef.h>
+
+1515984530 /usr/include/features.h
+	<stdc-predef.h>
+	<sys/cdefs.h>
+	<gnu/stubs.h>
+
+1515984530 /usr/include/stdc-predef.h
+
+1515984540 /usr/include/stdint.h
+	<features.h>
+	<bits/wchar.h>
+	<bits/wordsize.h>
+
+1445634967 /usr/include/GL/glu.h
+	"glu_mangle.h"
+	<GL/gl.h>
+
+1445634967 /usr/include/GL/glu_mangle.h
+
+1515984540 /usr/include/stdlib.h
+	<features.h>
+	<stddef.h>
+	<bits/waitflags.h>
+	<bits/waitstatus.h>
+	<xlocale.h>
+	<sys/types.h>
+	<alloca.h>
+	<bits/stdlib-bsearch.h>
+	<bits/stdlib-float.h>
+	<bits/stdlib.h>
+	<bits/stdlib-ldbl.h>
+
+1515984531 /usr/include/xlocale.h
+
+1515984540 /usr/include/alloca.h
+	<features.h>
+	<stddef.h>
+

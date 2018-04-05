@@ -1,0 +1,35 @@
+||=== Build: Debug in OpenGL (compiler: GNU GCC Compiler) ===|
+ /usr/lib/libglut.so||No such file or directory|
+ /usr/lib/libglut.so.3.9.0||No such file or directory|
+ /usr/lib/libGL.so||No such file or directory|
+ /usr/lib/libGL.so.1||No such file or directory|
+ /usr/lib/libGL.so.1.2.0||No such file or directory|
+||=== Build failed: 5 error(s), 0 warning(s) (0 minute(s), 0 second(s)) ===|
+
+
+
+
+
+
+||=== Build: Debug in OpenGL (compiler: GNU GCC Compiler) ===|
+ /usr/lib/libGL.so.1||No such file or directory|
+ /usr/lib/libGL.so.1.2.0||No such file or directory|
+||=== Build failed: 2 error(s), 0 warning(s) (0 minute(s), 0 second(s)) ===|
+
+
+
+
+||=== Build: Debug in OpenGL (compiler: GNU GCC Compiler) ===|
+ /usr/lib/libGL.so.1||No such file or directory|
+ /usr/lib/libGL.so.1.2.0||No such file or directory|
+||=== Build failed: 2 error(s), 0 warning(s) (0 minute(s), 0 second(s)) ===|
+
+
+
+
+||=== Build: Debug in OpenGL (compiler: GNU GCC Compiler) ===|
+/usr/include/glut.h|17|fatal error: freeglut_std.h: No such file or directory|
+||=== Build failed: 1 error(s), 0 warning(s) (0 minute(s), 0 second(s)) ===|
+
+
+

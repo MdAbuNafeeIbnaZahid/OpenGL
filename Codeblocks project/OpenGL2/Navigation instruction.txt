@@ -1,0 +1,11 @@
+LEFT key - rotate the camera in xy plane
+RIGHT key - rotate the camera in xy plane
+(LEFT & RIGHT rotate in opposite direction)
+
+
+UP - increase camera height
+DOWN - decrease camera height
+
+
+1 - decrease the camera distance along the xy plane
+2 - increase the camera distance along the xy plane
