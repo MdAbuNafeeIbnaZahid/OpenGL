@@ -27,6 +27,8 @@
 #define eps 1e-1
 #define DRAW_SEG_COUNT 50
 #define RIGHT_ANGLE_DEGREE 90
+#define SIZE 109
+
 
 using namespace std;
 
@@ -153,7 +155,6 @@ void drawQuad( Point a, Point b, Point c, Point d )
 void drawSquare(double a) // This method draws a square in the z = 0 plane
 // center of the square is in (0,0,0)
 {
-    //glColor3f(1.0,0.0,0.0);
 	glBegin(GL_QUADS);{
 		glVertex3f( a, a,0);
 		glVertex3f( a,-a,0);
@@ -168,21 +169,45 @@ void drawCustomSquare()
 }
 
 
+void draw6Squares()
+{
+    // Custom square is on the xy plane
+
+
+    // Will draw 2 squares parallel to the xy plane
+    drawRotatedTranslated(noRotation, Point(0, 0, -A), drawCustomSquare); // at z = -A plane
+    drawRotatedTranslated(noRotation, Point(0, 0, A), drawCustomSquare); // at z = A plane
+
+    // Will draw 2 squares parallel to the yz plane
+    // Need to rotate the custom square around the Y axis
+    drawRotatedTranslated(rightAngleRotAroundYAxis, Point(-A, 0, 0), drawCustomSquare); // at x = -A plane
+    drawRotatedTranslated(rightAngleRotAroundYAxis, Point(A, 0, 0), drawCustomSquare); // at x = A plane
+
+
+    // Will draw 2 squares parallel to the zx plane
+    // Need to rotate the custom square around the X axis
+    drawRotatedTranslated(rightAngleRotAroundXAxis, Point(0, -A, 0), drawCustomSquare); // at y = -A plane
+    drawRotatedTranslated(rightAngleRotAroundXAxis, Point(0, A, 0), drawCustomSquare); // at y = A plane
+}
+
+
 
 
 void drawCircle(double radius,int segments)
 {
-    int i;
-    Point points[100];
+    assert( segments < SIZE );
+
+
+    Point points[SIZE];
     glColor3f(0.7,0.7,0.7);
     //generate points
-    for(i=0;i<=segments;i++)
+    for(int i=0;i<=segments;i++)
     {
         points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
         points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
     }
     //draw segments using generated points
-    for(i=0;i<segments;i++)
+    for(int i=0;i<segments;i++)
     {
         glBegin(GL_LINES);
         {
@@ -197,8 +222,8 @@ void drawCylinder(double radius, double height, int segments) // this method dra
 // the middle point of the cylinder is (0,0,0)
 {
 
-    assert( segments <= 100 );
-    Point pointAr[3][109];
+    assert( segments < SIZE );
+    Point pointAr[3][SIZE];
 
     // generate upper and lower cirlce
     for (int i = 0; i <= segments; i++)
@@ -259,41 +284,14 @@ void draw12Cylinders()
     drawRotatedTranslated(rightAngleRotAroundXAxis, d, 0, +d, drawCustomCylinder);
 }
 
-void drawCone(double radius,double height,int segments)
-{
-    assert(segments <= 100);
-
-    int i;
-    double shade;
-    Point points[109];
-    //generate points
-    for(i=0;i<=segments;i++)
-    {
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
-    }
-    //draw triangles using generated points
-    for(i=0;i<segments;i++)
-    {
-        //create shading effect
-        if(i<segments/2)shade=2*(double)i/(double)segments;
-        else shade=2*(1.0-(double)i/(double)segments);
-        glColor3f(shade,shade,shade);
-
-        glBegin(GL_TRIANGLES);
-        {
-            glVertex3f(0,0,height);
-			glVertex3f(points[i].x,points[i].y,0);
-			glVertex3f(points[i+1].x,points[i+1].y,0);
-        }
-        glEnd();
-    }
-}
 
 
 void drawSphere(double radius,int slices,int stacks)
 {
-	Point points[100][100];
+    assert( slices < SIZE );
+    assert( stacks < SIZE );
+
+	Point points[SIZE][SIZE];
 	int i,j;
 	double h,r;
 	//generate points
@@ -311,7 +309,7 @@ void drawSphere(double radius,int slices,int stacks)
 	//draw quads using generated points
 	for(i=0;i<stacks;i++)
 	{
-        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
+//        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
 		for(j=0;j<slices;j++)
 		{
 			glBegin(GL_QUADS);{
@@ -328,6 +326,32 @@ void drawSphere(double radius,int slices,int stacks)
 			}glEnd();
 		}
 	}
+}
+
+
+void drawCustomSphere()
+{
+    drawSphere(paramT, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+}
+
+void draw8Spheres()
+{
+    glColor3f(1, 0, 0); // cylinders have color green
+
+    // Rotation doesn't make sense in case of sphere
+
+    double d = A-paramT; // I am taking new variable d just to make it easier to write
+
+    drawRotatedTranslated(noRotation, -d, -d, -d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, -d, -d, +d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, -d, +d, -d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, -d, +d, +d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, +d, -d, -d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, +d, -d, +d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, +d, +d, -d, drawCustomSphere );
+    drawRotatedTranslated(noRotation, +d, +d, +d, drawCustomSphere );
+
+
 }
 
 
@@ -422,53 +446,6 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 
 
 
-void draw6Squares()
-{
-    // These six squares should be drawn with color white
-    glColor3f(1, 1, 1);
-
-    // draw square in z = A plane
-    glPushMatrix();{
-        glTranslatef(0, 0, A);
-        drawCustomSquare();
-    }glPopMatrix();
-
-    // drawSquare in z = -A plane
-    glPushMatrix();{
-        glTranslatef(0, 0, -A);
-        drawCustomSquare();
-    }glPopMatrix();
-
-
-    // draw square in y = A plane
-    glPushMatrix();{
-        glTranslatef(0, A, 0);
-        glRotatef(90, 1, 0, 0);
-        drawCustomSquare();
-    }glPopMatrix();
-
-//     draw square in y = -A plane
-    glPushMatrix();{
-        glTranslatef(0, -A, 0);
-        glRotatef(90, 1, 0, 0);
-        drawCustomSquare();
-    }glPopMatrix();
-//
-
-//     draw square in x = A plane
-    glPushMatrix();{
-        glTranslatef(A, 0, 0);
-        glRotatef(90, 0, 1, 0);
-        drawCustomSquare();
-    }glPopMatrix();
-
-    // draw square in x = -A plane
-    glPushMatrix();{
-        glTranslatef(-A, 0, 0);
-        glRotatef(90, 0, 1, 0);
-        drawCustomSquare();
-    }glPopMatrix();
-}
 
 
 void offlienDisplay()
@@ -510,9 +487,13 @@ void offlienDisplay()
 	****************************/
 	//add objects
 
+
+
 	drawAxes();
 	draw6Squares();
     draw12Cylinders();
+    draw8Spheres();
+
 
 //	drawGrid();
 
@@ -729,6 +710,36 @@ void animate(){
 
 
 
+void drawCone(double radius,double height,int segments)
+{
+    assert(segments <= 100);
+
+    int i;
+    double shade;
+    Point points[109];
+    //generate points
+    for(i=0;i<=segments;i++)
+    {
+        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
+        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
+    }
+    //draw triangles using generated points
+    for(i=0;i<segments;i++)
+    {
+        //create shading effect
+        if(i<segments/2)shade=2*(double)i/(double)segments;
+        else shade=2*(1.0-(double)i/(double)segments);
+        glColor3f(shade,shade,shade);
+
+        glBegin(GL_TRIANGLES);
+        {
+            glVertex3f(0,0,height);
+			glVertex3f(points[i].x,points[i].y,0);
+			glVertex3f(points[i+1].x,points[i+1].y,0);
+        }
+        glEnd();
+    }
+}
 
 
 
