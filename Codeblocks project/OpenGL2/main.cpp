@@ -25,6 +25,8 @@
 #define A 40
 #define MY_INF 200
 #define eps 1e-1
+#define DRAW_SEG_COUNT 50
+#define RIGHT_ANGLE_DEGREE 90
 
 using namespace std;
 
@@ -44,11 +46,11 @@ int drawgrid;
 int drawaxes;
 double angle;
 
-struct point
+struct Point
 {
 	double x,y,z;
-	point(){}
-	point(double x, double y, double z)
+	Point(){}
+	Point(double x, double y, double z)
 	{
         this->x = x;
         this->y = y;
@@ -56,36 +58,65 @@ struct point
 	}
 };
 
-struct rotation
+const Point xVec(1,0,0);
+const Point yVec(0,1,0);
+const Point zVec(0,0,1);
+
+struct Rotation
 {
     double angle;
-    point vec;
-    rotation(){}
-    rotation(double angle, point vec)
+    Point vec;
+    Rotation(){}
+    Rotation(double angle, Point vec)
     {
         this->angle = angle;
         this->vec = vec;
     }
 };
 
-void drawRotatedTranslated(rotation rot, point translation, void (*drawFunc)() )
+const Rotation noRotation(0, Point(0, 0, 0));
+const Rotation rightAngleRotAroundXAxis( RIGHT_ANGLE_DEGREE, xVec );
+const Rotation rightAngleRotAroundYAxis( RIGHT_ANGLE_DEGREE, yVec );
+const Rotation rightAngleRotAroundZAxis( RIGHT_ANGLE_DEGREE, zVec );
+
+
+void myRotate(Rotation rot)
 {
     double angle = rot.angle;
-    point rotVec = rot.vec;
+    Point vec = rot.vec;
+    glRotated( angle, vec.x, vec.y, vec.z );
+}
 
-    double rx = rotVec.x;
+void myTranslate( Point vec )
+{
+    glTranslated(vec.x, vec.y, vec.z);
+}
 
+void drawRotatedTranslated( Rotation rot, Point trans, void (*drawFunc)() )
+{
+    glPushMatrix();{
+        myTranslate(trans);
+        myRotate(rot);
+        drawFunc();
+    }glPopMatrix();
 }
 
 void drawRotatedTranslated(double angle, double rx, double ry, double rz, double tx, double ty, double tz,
 void (*drawFunc)() )
 {
-    glPushMatrix();{
-        glTranslatef(tx, ty, tz);
-        glRotated(angle, rx, ry, rz);
-        drawFunc();
-    }glPopMatrix();
+    Point rotateVec(rx, ry, rz);
+    Rotation rotation(angle, rotateVec);
+    Point translateVec(tx, ty, tz);
+    drawRotatedTranslated(rotation, translateVec, drawFunc);
 }
+
+
+void drawRotatedTranslated(Rotation rotation, double tx, double ty, double tz, void (*drawFunc)() )
+{
+    Point translateVec(tx,ty,tz);
+    drawRotatedTranslated(rotation, translateVec, drawFunc);
+}
+
 
 
 
@@ -107,6 +138,15 @@ void drawAxes()
 		}glEnd();
 	}
 }
+void drawQuad( Point a, Point b, Point c, Point d )
+{
+    glBegin(GL_QUADS);{
+		glVertex3f( a.x, a.y, a.z);
+		glVertex3f( b.x, b.y, b.z);
+		glVertex3f( c.x, c.y, c.z);
+		glVertex3f( d.x, d.y, d.z);
+	}glEnd();
+}
 
 
 
@@ -122,22 +162,18 @@ void drawSquare(double a) // This method draws a square in the z = 0 plane
 	}glEnd();
 }
 
-
-void drawQuad( point a, point b, point c, point d )
+void drawCustomSquare()
 {
-    glBegin(GL_QUADS);{
-		glVertex3f( a.x, a.y, a.z);
-		glVertex3f( b.x, b.y, b.z);
-		glVertex3f( c.x, c.y, c.z);
-		glVertex3f( d.x, d.y, d.z);
-	}glEnd();
+    drawSquare(A-paramT);
 }
+
+
 
 
 void drawCircle(double radius,int segments)
 {
     int i;
-    struct point points[100];
+    Point points[100];
     glColor3f(0.7,0.7,0.7);
     //generate points
     for(i=0;i<=segments;i++)
@@ -162,7 +198,7 @@ void drawCylinder(double radius, double height, int segments) // this method dra
 {
 
     assert( segments <= 100 );
-    struct point pointAr[3][109];
+    Point pointAr[3][109];
 
     // generate upper and lower cirlce
     for (int i = 0; i <= segments; i++)
@@ -187,7 +223,7 @@ void drawCylinder(double radius, double height, int segments) // this method dra
 
 void drawCustomCylinder()
 {
-    drawCylinder(paramT, 2*(A-paramT), 50);
+    drawCylinder(paramT, 2*(A-paramT), DRAW_SEG_COUNT);
 }
 
 
@@ -195,16 +231,32 @@ void draw12Cylinders()
 {
     glColor3f(0, 1, 0); // cylinders have color green
 
-    // Custom cylinder is by default parallel to Z axis
+    // Custom cylinder is parallel to Z axis
 
-    double d = A-paramT/2;
-    // Drawn 4 cylinders along the Z axis
-    drawRotatedTranslated(0, 0, 0, 0, d, d, 0, drawCustomCylinder);
-    drawRotatedTranslated(0, 0, 0, 0, d, -d, 0, drawCustomCylinder);
-    drawRotatedTranslated(0, 0, 0, 0, -d, d, 0, drawCustomCylinder);
-    drawRotatedTranslated(0, 0, 0, 0, -d, -d, 0, drawCustomCylinder);
+    double d = A-paramT;
+
+    // Will draw 4 cylinders along the Z axis
+    drawRotatedTranslated(noRotation, -d, -d, 0, drawCustomCylinder);
+    drawRotatedTranslated(noRotation, -d, d, 0, drawCustomCylinder);
+    drawRotatedTranslated(noRotation, d, -d, 0, drawCustomCylinder);
+    drawRotatedTranslated(noRotation, d, d, 0, drawCustomCylinder);
 
 
+    // Will draw 4 cylinders along the X axis
+    // the custom cylinder is along z axis
+    // Need to rotate it along the Y axis
+    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, -d, -d, drawCustomCylinder);
+    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, -d, d, drawCustomCylinder);
+    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, d, -d, drawCustomCylinder);
+    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, d, +d, drawCustomCylinder);
+
+    // Will 4 cylinders along the Y axis
+    // The custom cylinder is along Z axis
+    // Need to rotate it along the X axis
+    drawRotatedTranslated(rightAngleRotAroundXAxis, -d, 0, -d, drawCustomCylinder);
+    drawRotatedTranslated(rightAngleRotAroundXAxis, -d, 0, d, drawCustomCylinder);
+    drawRotatedTranslated(rightAngleRotAroundXAxis, d, 0, -d, drawCustomCylinder);
+    drawRotatedTranslated(rightAngleRotAroundXAxis, d, 0, +d, drawCustomCylinder);
 }
 
 void drawCone(double radius,double height,int segments)
@@ -213,7 +265,7 @@ void drawCone(double radius,double height,int segments)
 
     int i;
     double shade;
-    struct point points[109];
+    Point points[109];
     //generate points
     for(i=0;i<=segments;i++)
     {
@@ -241,7 +293,7 @@ void drawCone(double radius,double height,int segments)
 
 void drawSphere(double radius,int slices,int stacks)
 {
-	struct point points[100][100];
+	Point points[100][100];
 	int i,j;
 	double h,r;
 	//generate points
@@ -353,11 +405,11 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 			break;
 
 		case GLUT_RIGHT_BUTTON:
-			//........
+//			........
 			break;
 
 		case GLUT_MIDDLE_BUTTON:
-			//........
+//			........
 			break;
 
 		default:
@@ -366,10 +418,7 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 }
 
 
-void drawCustomSquare()
-{
-    drawSquare(A-paramT);
-}
+
 
 
 
@@ -558,123 +607,128 @@ int main(int argc, char **argv){
 }
 
 
+void drawGrid()
+{
+	int i;
+	if(drawgrid==1)
+	{
+		glColor3f(0.6, 0.6, 0.6);	//grey
+		glBegin(GL_LINES);{
+			for(i=-8;i<=8;i++){
+
+				if(i==0)
+					continue;	//SKIP the MAIN axes
+
+//				lines parallel to Y-axis
+				glVertex3f(i*10, -90, 0);
+				glVertex3f(i*10,  90, 0);
+
+//				lines parallel to X-axis
+				glVertex3f(-90, i*10, 0);
+				glVertex3f( 90, i*10, 0);
+			}
+		}glEnd();
+	}
+}
+
+
+
+void drawSS()
+{
+    glColor3f(1,0,0);
+    drawSquare(20);
+
+    glRotatef(angle,0,0,1);
+    glTranslatef(110,0,0);
+    glRotatef(2*angle,0,0,1);
+    glColor3f(0,1,0);
+    drawSquare(15);
+
+    glPushMatrix();
+    {
+        glRotatef(angle,0,0,1);
+        glTranslatef(60,0,0);
+        glRotatef(2*angle,0,0,1);
+        glColor3f(0,0,1);
+        drawSquare(10);
+    }
+    glPopMatrix();
+
+    glRotatef(3*angle,0,0,1);
+    glTranslatef(40,0,0);
+    glRotatef(4*angle,0,0,1);
+    glColor3f(1,1,0);
+    drawSquare(5);
+}
+
+
+
+void display(){
+
+	//clear the display
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClearColor(0,0,0,0);	//color black
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	/********************
+	/ set-up camera here
+	********************/
+	//load the correct matrix -- MODEL-VIEW matrix
+	glMatrixMode(GL_MODELVIEW);
+
+	//initialize the matrix
+	glLoadIdentity();
+
+	//now give three info
+	//1. where is the camera (viewer)?
+	//2. where is the camera looking?
+	//3. Which direction is the camera's UP direction?
+
+	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
+	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
+	gluLookAt(0,0,200,	0,0,0,	0,1,0);
+
+
+	//again select MODEL-VIEW
+	glMatrixMode(GL_MODELVIEW);
+
+
+	/****************************
+	/ Add your objects from here
+	****************************/
+	//add objects
+
+	drawAxes();
+	drawGrid();
+
+    //glColor3f(1,0,0);
+    //drawSquare(10);
+
+    drawSS();
+
+    //drawCircle(30,24);
+
+    //drawCone(20,50,24);
+
+	//drawSphere(30,24,20);
 
 
 
 
-//void display(){
-//
-//	//clear the display
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//	glClearColor(0,0,0,0);	//color black
-//	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//
-//	/********************
-//	/ set-up camera here
-//	********************/
-//	//load the correct matrix -- MODEL-VIEW matrix
-//	glMatrixMode(GL_MODELVIEW);
-//
-//	//initialize the matrix
-//	glLoadIdentity();
-//
-//	//now give three info
-//	//1. where is the camera (viewer)?
-//	//2. where is the camera looking?
-//	//3. Which direction is the camera's UP direction?
-//
-//	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
-//	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
-//	gluLookAt(0,0,200,	0,0,0,	0,1,0);
-//
-//
-//	//again select MODEL-VIEW
-//	glMatrixMode(GL_MODELVIEW);
-//
-//
-//	/****************************
-//	/ Add your objects from here
-//	****************************/
-//	//add objects
-//
-//	drawAxes();
-//	drawGrid();
-//
-//    //glColor3f(1,0,0);
-//    //drawSquare(10);
-//
-//    drawSS();
-//
-//    //drawCircle(30,24);
-//
-//    //drawCone(20,50,24);
-//
-//	//drawSphere(30,24,20);
-//
-//
-//
-//
-//	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
-//	glutSwapBuffers();
-//}
-//
-//
-//void animate(){
-//	angle+=0.05;
-//	//codes for any changes in Models, Camera
-//	glutPostRedisplay();
-//}
+	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
+	glutSwapBuffers();
+}
 
 
-//void drawSS()
-//{
-//    glColor3f(1,0,0);
-//    drawSquare(20);
-//
-//    glRotatef(angle,0,0,1);
-//    glTranslatef(110,0,0);
-//    glRotatef(2*angle,0,0,1);
-//    glColor3f(0,1,0);
-//    drawSquare(15);
-//
-//    glPushMatrix();
-//    {
-//        glRotatef(angle,0,0,1);
-//        glTranslatef(60,0,0);
-//        glRotatef(2*angle,0,0,1);
-//        glColor3f(0,0,1);
-//        drawSquare(10);
-//    }
-//    glPopMatrix();
-//
-//    glRotatef(3*angle,0,0,1);
-//    glTranslatef(40,0,0);
-//    glRotatef(4*angle,0,0,1);
-//    glColor3f(1,1,0);
-//    drawSquare(5);
-//}
+void animate(){
+	angle+=0.05;
+	//codes for any changes in Models, Camera
+	glutPostRedisplay();
+}
 
 
-//void drawGrid()
-//{
-//	int i;
-//	if(drawgrid==1)
-//	{
-//		glColor3f(0.6, 0.6, 0.6);	//grey
-//		glBegin(GL_LINES);{
-//			for(i=-8;i<=8;i++){
-//
-//				if(i==0)
-//					continue;	//SKIP the MAIN axes
-//
-//				//lines parallel to Y-axis
-//				glVertex3f(i*10, -90, 0);
-//				glVertex3f(i*10,  90, 0);
-//
-//				//lines parallel to X-axis
-//				glVertex3f(-90, i*10, 0);
-//				glVertex3f( 90, i*10, 0);
-//			}
-//		}glEnd();
-//	}
-//}
+
+
+
+
+
