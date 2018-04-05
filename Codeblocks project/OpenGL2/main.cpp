@@ -22,7 +22,7 @@
 #include <bits/stdc++.h>
 #define pi (2*acos(0.0))
 
-#define A 20
+#define A 40
 #define MY_INF 200
 #define eps 1e-1
 
@@ -47,11 +47,51 @@ double angle;
 struct point
 {
 	double x,y,z;
+	point(){}
+	point(double x, double y, double z)
+	{
+        this->x = x;
+        this->y = y;
+        this->z = z;
+	}
 };
+
+struct rotation
+{
+    double angle;
+    point vec;
+    rotation(){}
+    rotation(double angle, point vec)
+    {
+        this->angle = angle;
+        this->vec = vec;
+    }
+};
+
+void drawRotatedTranslated(rotation rot, point translation, void (*drawFunc)() )
+{
+    double angle = rot.angle;
+    point rotVec = rot.vec;
+
+    double rx = rotVec.x;
+
+}
+
+void drawRotatedTranslated(double angle, double rx, double ry, double rz, double tx, double ty, double tz,
+void (*drawFunc)() )
+{
+    glPushMatrix();{
+        glTranslatef(tx, ty, tz);
+        glRotated(angle, rx, ry, rz);
+        drawFunc();
+    }glPopMatrix();
+}
+
 
 
 void drawAxes()
 {
+
 	if(drawaxes==1)
 	{
 		glColor3f(1.0, 1.0, 1.0);
@@ -69,29 +109,6 @@ void drawAxes()
 }
 
 
-void drawGrid()
-{
-	int i;
-	if(drawgrid==1)
-	{
-		glColor3f(0.6, 0.6, 0.6);	//grey
-		glBegin(GL_LINES);{
-			for(i=-8;i<=8;i++){
-
-				if(i==0)
-					continue;	//SKIP the MAIN axes
-
-				//lines parallel to Y-axis
-				glVertex3f(i*10, -90, 0);
-				glVertex3f(i*10,  90, 0);
-
-				//lines parallel to X-axis
-				glVertex3f(-90, i*10, 0);
-				glVertex3f( 90, i*10, 0);
-			}
-		}glEnd();
-	}
-}
 
 void drawSquare(double a) // This method draws a square in the z = 0 plane
 // center of the square is in (0,0,0)
@@ -102,6 +119,17 @@ void drawSquare(double a) // This method draws a square in the z = 0 plane
 		glVertex3f( a,-a,0);
 		glVertex3f(-a,-a,0);
 		glVertex3f(-a, a,0);
+	}glEnd();
+}
+
+
+void drawQuad( point a, point b, point c, point d )
+{
+    glBegin(GL_QUADS);{
+		glVertex3f( a.x, a.y, a.z);
+		glVertex3f( b.x, b.y, b.z);
+		glVertex3f( c.x, c.y, c.z);
+		glVertex3f( d.x, d.y, d.z);
 	}glEnd();
 }
 
@@ -129,8 +157,10 @@ void drawCircle(double radius,int segments)
     }
 }
 
-void drawCylinder(double radius, double height, int segments)
+void drawCylinder(double radius, double height, int segments) // this method draws a cylinder along the z axis
+// the middle point of the cylinder is (0,0,0)
 {
+
     assert( segments <= 100 );
     struct point pointAr[3][109];
 
@@ -141,23 +171,40 @@ void drawCylinder(double radius, double height, int segments)
         pointAr[0][i].y = pointAr[1][i].y = radius*sin(((double)i/(double)segments)*2*pi);
 
         // fixing the z coordinate of upper circle
-        pointAr[0][i].z = height;
+        pointAr[0][i].z = height/2;
 
         // fixing the z coordinate of lower circle
-        pointAr[1][i].z = -height;
+        pointAr[1][i].z = -height/2;
     }
 
 
     // This for loop is not complete
     for (int i = 0; i < segments; i++)
     {
-        glBegin(GL_QUADS);{
-            glVertex3f( a, a,0);
-            glVertex3f( a,-a,0);
-            glVertex3f(-a,-a,0);
-            glVertex3f(-a, a,0);
-        }glEnd();
+        drawQuad( pointAr[0][i], pointAr[0][i+1], pointAr[1][i+1], pointAr[1][i] );
     }
+}
+
+void drawCustomCylinder()
+{
+    drawCylinder(paramT, 2*(A-paramT), 50);
+}
+
+
+void draw12Cylinders()
+{
+    glColor3f(0, 1, 0); // cylinders have color green
+
+    // Custom cylinder is by default parallel to Z axis
+
+    double d = A-paramT/2;
+    // Drawn 4 cylinders along the Z axis
+    drawRotatedTranslated(0, 0, 0, 0, d, d, 0, drawCustomCylinder);
+    drawRotatedTranslated(0, 0, 0, 0, d, -d, 0, drawCustomCylinder);
+    drawRotatedTranslated(0, 0, 0, 0, -d, d, 0, drawCustomCylinder);
+    drawRotatedTranslated(0, 0, 0, 0, -d, -d, 0, drawCustomCylinder);
+
+
 }
 
 void drawCone(double radius,double height,int segments)
@@ -232,33 +279,6 @@ void drawSphere(double radius,int slices,int stacks)
 }
 
 
-void drawSS()
-{
-    glColor3f(1,0,0);
-    drawSquare(20);
-
-    glRotatef(angle,0,0,1);
-    glTranslatef(110,0,0);
-    glRotatef(2*angle,0,0,1);
-    glColor3f(0,1,0);
-    drawSquare(15);
-
-    glPushMatrix();
-    {
-        glRotatef(angle,0,0,1);
-        glTranslatef(60,0,0);
-        glRotatef(2*angle,0,0,1);
-        glColor3f(0,0,1);
-        drawSquare(10);
-    }
-    glPopMatrix();
-
-    glRotatef(3*angle,0,0,1);
-    glTranslatef(40,0,0);
-    glRotatef(4*angle,0,0,1);
-    glColor3f(1,1,0);
-    drawSquare(5);
-}
 
 void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
@@ -266,7 +286,7 @@ void keyboardListener(unsigned char key, int x,int y){
 		case '1':
             if (cameraDistance > 0)
             {
-                cameraDistance -= 1;
+                cameraDistance = max((double)eps, cameraDistance-1);
             }
 			break;
 
@@ -307,12 +327,14 @@ void specialKeyListener(int key, int x,int y){
             if ( paramT < A )
             {
                 paramT += eps;
+                cout << "paramT = " << paramT << endl;
             }
 			break;
 		case GLUT_KEY_END:
             if (paramT > 0)
             {
                 paramT -= eps;
+                cout << "paramT = " << paramT << endl;
             }
 			break;
 
@@ -344,60 +366,59 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 }
 
 
+void drawCustomSquare()
+{
+    drawSquare(A-paramT);
+}
+
+
+
 void draw6Squares()
 {
+    // These six squares should be drawn with color white
+    glColor3f(1, 1, 1);
+
     // draw square in z = A plane
-    glPushMatrix();
-    {
+    glPushMatrix();{
         glTranslatef(0, 0, A);
-        drawSquare(A-paramT);
-    }
-    glPopMatrix();
+        drawCustomSquare();
+    }glPopMatrix();
 
     // drawSquare in z = -A plane
-    glPushMatrix();
-    {
+    glPushMatrix();{
         glTranslatef(0, 0, -A);
-        drawSquare(A-paramT);
-    }
-    glPopMatrix();
+        drawCustomSquare();
+    }glPopMatrix();
+
 
     // draw square in y = A plane
-    glPushMatrix();
-    {
+    glPushMatrix();{
         glTranslatef(0, A, 0);
         glRotatef(90, 1, 0, 0);
-        drawSquare(A-paramT);
-    }
-    glPopMatrix();
+        drawCustomSquare();
+    }glPopMatrix();
 
 //     draw square in y = -A plane
-    glPushMatrix();
-    {
+    glPushMatrix();{
         glTranslatef(0, -A, 0);
         glRotatef(90, 1, 0, 0);
-        drawSquare(A-paramT);
-    }
-    glPopMatrix();
+        drawCustomSquare();
+    }glPopMatrix();
 //
 
 //     draw square in x = A plane
-    glPushMatrix();
-    {
+    glPushMatrix();{
         glTranslatef(A, 0, 0);
         glRotatef(90, 0, 1, 0);
-        drawSquare(A-paramT);
-    }
-    glPopMatrix();
+        drawCustomSquare();
+    }glPopMatrix();
 
     // draw square in x = -A plane
-    glPushMatrix();
-    {
+    glPushMatrix();{
         glTranslatef(-A, 0, 0);
         glRotatef(90, 0, 1, 0);
-        drawSquare(A-paramT);
-    }
-    glPopMatrix();
+        drawCustomSquare();
+    }glPopMatrix();
 }
 
 
@@ -442,6 +463,8 @@ void offlienDisplay()
 
 	drawAxes();
 	draw6Squares();
+    draw12Cylinders();
+
 //	drawGrid();
 
     //glColor3f(1,0,0);
@@ -600,4 +623,58 @@ int main(int argc, char **argv){
 //	angle+=0.05;
 //	//codes for any changes in Models, Camera
 //	glutPostRedisplay();
+//}
+
+
+//void drawSS()
+//{
+//    glColor3f(1,0,0);
+//    drawSquare(20);
+//
+//    glRotatef(angle,0,0,1);
+//    glTranslatef(110,0,0);
+//    glRotatef(2*angle,0,0,1);
+//    glColor3f(0,1,0);
+//    drawSquare(15);
+//
+//    glPushMatrix();
+//    {
+//        glRotatef(angle,0,0,1);
+//        glTranslatef(60,0,0);
+//        glRotatef(2*angle,0,0,1);
+//        glColor3f(0,0,1);
+//        drawSquare(10);
+//    }
+//    glPopMatrix();
+//
+//    glRotatef(3*angle,0,0,1);
+//    glTranslatef(40,0,0);
+//    glRotatef(4*angle,0,0,1);
+//    glColor3f(1,1,0);
+//    drawSquare(5);
+//}
+
+
+//void drawGrid()
+//{
+//	int i;
+//	if(drawgrid==1)
+//	{
+//		glColor3f(0.6, 0.6, 0.6);	//grey
+//		glBegin(GL_LINES);{
+//			for(i=-8;i<=8;i++){
+//
+//				if(i==0)
+//					continue;	//SKIP the MAIN axes
+//
+//				//lines parallel to Y-axis
+//				glVertex3f(i*10, -90, 0);
+//				glVertex3f(i*10,  90, 0);
+//
+//				//lines parallel to X-axis
+//				glVertex3f(-90, i*10, 0);
+//				glVertex3f( 90, i*10, 0);
+//			}
+//		}glEnd();
+//	}
 //}
