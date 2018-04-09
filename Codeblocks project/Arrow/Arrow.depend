@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1523270359 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/main.cpp
+1523279989 source:/home/nafee/Desktop/OpenGL/Codeblocks project/Arrow/main.cpp
 	<GLUT/glut.h>
 	<GL/glut.h>
 	<stdlib.h>
@@ -74,10 +74,4 @@
 1515984540 /usr/include/alloca.h
 	<features.h>
 	<stddef.h>
-
-1523270332 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/arrow.cpp
-	<GLUT/glut.h>
-	<GL/glut.h>
-	<stdlib.h>
-	<bits/stdc++.h>
 
