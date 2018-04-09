@@ -51,18 +51,46 @@ double angle;
 struct Point
 {
 	double x,y,z;
-	Point(){}
+    Point(){}
 	Point(double x, double y, double z)
 	{
         this->x = x;
         this->y = y;
         this->z = z;
 	}
+
+    Point operator+(const Point &p)
+    {
+        return Point(x+p.x, y+p.y, z+p.z);
+    }
+
+    Point operator*(const Point &p)
+    {
+        return Point( x*(p.x), y*(p.y), z*(p.z) );
+    }
+
+    Point operator+=(const Point &p)
+    {
+        this->x += p.x;
+        this->y += p.y;
+        this->z += p.z;
+
+        return *this;
+    }
+
+    Point operator-=(const Point &p)
+    {
+        this->x -= p.x;
+        this->y -= p.y;
+        this->z -= p.z;
+
+        return *this;
+    }
 };
 
-const Point xVec(1,0,0);
-const Point yVec(0,1,0);
-const Point zVec(0,0,1);
+const Point unitXVec(1,0,0);
+const Point unitYVec(0,1,0);
+const Point unitZVec(0,0,1);
 
 const Point noTranslation(0,0,0);
 
@@ -70,7 +98,9 @@ struct Rotation
 {
     double angle;
     Point vec;
+
     Rotation(){}
+
     Rotation(double angle, Point vec)
     {
         this->angle = angle;
@@ -79,9 +109,65 @@ struct Rotation
 };
 
 const Rotation noRotation(0, Point(0, 0, 0));
-const Rotation rightAngleRotAroundXAxis( RIGHT_ANGLE_DEGREE, xVec );
-const Rotation rightAngleRotAroundYAxis( RIGHT_ANGLE_DEGREE, yVec );
-const Rotation rightAngleRotAroundZAxis( RIGHT_ANGLE_DEGREE, zVec );
+const Rotation rightAngleRotAroundXAxis( RIGHT_ANGLE_DEGREE, unitXVec );
+const Rotation rightAngleRotAroundYAxis( RIGHT_ANGLE_DEGREE, unitYVec );
+const Rotation rightAngleRotAroundZAxis( RIGHT_ANGLE_DEGREE, unitZVec );
+
+class CameraOrientation
+{
+
+private:
+
+    Point cameraPosition = Point(-MY_INF, 0, 0);
+    Point upDirection = unitZVec;
+    Point rightDirection = unitYVec;
+    Point forwardDirection = unitXVec;
+
+public:
+
+    Point getCameraPosition()
+    {
+        return cameraPosition;
+    }
+
+    Point getForwardDirection()
+    {
+        return forwardDirection;
+    }
+
+    Point getUpDirection()
+    {
+        return upDirection;
+    }
+
+    void moveForward()
+    {
+        cameraPosition += forwardDirection;
+    }
+
+    void moveBackward()
+    {
+        cameraPosition -= forwardDirection;
+    }
+};
+
+
+CameraOrientation cameraOrientation;
+
+
+void myLookAt( CameraOrientation cameraOrientation )
+{
+    Point cameraPosition = cameraOrientation.getCameraPosition();
+    Point forwardDirection = cameraOrientation.getForwardDirection();
+    Point upDirection = cameraOrientation.getUpDirection();
+
+    Point lookAtPoint = cameraPosition + forwardDirection;
+
+    gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
+    lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
+    upDirection.x, upDirection.y, upDirection.z);
+}
+
 
 
 void myRotate(Rotation rot)
@@ -264,7 +350,7 @@ void draw4OneFourthCylinderAlongZAxis()
     for ( int rotAngle = 0; rotAngle < 360; rotAngle += RIGHT_ANGLE_DEGREE )
     {
         glPushMatrix();{
-            Rotation rotation( rotAngle, zVec  );
+            Rotation rotation( rotAngle, unitZVec  );
             myRotate(rotation);
             drawCustomOneFourthCylinder();
         }glPopMatrix();
@@ -274,7 +360,7 @@ void draw4OneFourthCylinderAlongZAxis()
 
 
 
-void draw12Cylinders()
+void draw12OneFourthCylinders()
 {
     glColor3f(0, 1, 0); // cylinders have color green
 
@@ -370,9 +456,6 @@ void draw8OneEighthSpheres()
 {
     glColor3f(1, 0, 0); // cylinders have color green
 
-    // Rotation doesn't make sense in case of sphere
-
-    double d = A-paramT; // I am taking new variable d just to make it easier to write
     drawUpper4OneEighthSphere();
     drawLower4OneEighthSphere();
 
@@ -403,10 +486,10 @@ void keyboardListener(unsigned char key, int x,int y){
 void specialKeyListener(int key, int x,int y){
 	switch(key){
 		case GLUT_KEY_DOWN:		//down arrow key
-			cameraHeight -= 1.0;
+			cameraOrientation.moveBackward();
 			break;
 		case GLUT_KEY_UP:		// up arrow key
-			cameraHeight += 1.0;
+			cameraOrientation.moveForward();
 			break;
 
 		case GLUT_KEY_RIGHT:
@@ -497,10 +580,13 @@ void offlienDisplay()
 
 	//gluLookAt(100,100,100,	0,0,0,	0,0,1);
 	//gluLookAt(200*cos(cameraAngle), 200*sin(cameraAngle), cameraHeight,		0,0,0,		0,0,1);
-	gluLookAt(cameraDistance*cos(cameraAngle),cameraDistance*sin(cameraAngle),
-	cameraHeight,
+//	gluLookAt(cameraDistance*cos(cameraAngle),cameraDistance*sin(cameraAngle),
+//	cameraHeight,
+//
+//    0,0,0,	0,0,1);
 
-    0,0,0,	0,0,1);
+
+    myLookAt( cameraOrientation );
 
 
 	//again select MODEL-VIEW
@@ -516,7 +602,7 @@ void offlienDisplay()
 
 	drawAxes();
 	draw6Squares();
-    draw12Cylinders();
+    draw12OneFourthCylinders();
     draw8OneEighthSpheres();
 
 
