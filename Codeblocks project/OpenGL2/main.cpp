@@ -20,7 +20,7 @@
 
 #include <stdlib.h>
 #include <bits/stdc++.h>
-#define pi (2*acos(0.0))
+#define PI (2*acos(0.0))
 
 #define A 40
 #define MY_INF 200
@@ -48,6 +48,12 @@ int drawgrid;
 int drawaxes;
 double angle;
 
+
+double degreeToRad( double degree)
+{
+    return degree * PI / 180;
+}
+
 struct Point
 {
 	double x,y,z;
@@ -59,14 +65,14 @@ struct Point
         this->z = z;
 	}
 
-    Point operator+(const Point &p)
+    Point operator+(const Point &p) const
     {
         return Point(x+p.x, y+p.y, z+p.z);
     }
 
-    Point operator*(const Point &p)
+    Point operator*(double i) const
     {
-        return Point( x*(p.x), y*(p.y), z*(p.z) );
+        return Point( x*i, y*i, z*i );
     }
 
     Point operator+=(const Point &p)
@@ -80,13 +86,97 @@ struct Point
 
     Point operator-=(const Point &p)
     {
-        this->x -= p.x;
-        this->y -= p.y;
-        this->z -= p.z;
+        (*this) += p * (-1);
 
         return *this;
     }
+
+    Point getCrossProduct(const Point &p) const
+    {
+        Point ret;
+
+        ret.x = this->y * p.z - this->z * p.y;
+        ret.y = this->z * p.x - this->x * p.z;
+        ret.z = this->x * p.y - this->y * p.x;
+
+        return ret;
+    }
+
+    double getDisFromMain() const
+    {
+        return sqrt(x*x + y*y + z*z);
+    }
+
+    double getDotProduct(const Point &p) const
+    {
+        return (this->x) * p.x + (this->y) * p.y + (this->z) * p.z;
+    }
+
+    bool isParallel( const Point &p ) const
+    {
+        Point crossVec = getCrossProduct(p);
+        if ( crossVec.getDisFromMain() <= eps )
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool isUnit()
+    {
+        return ( abs(getDisFromMain() - 1) <= eps );
+    }
+
+    bool isPerpendicular( const Point &p ) const
+    {
+        return ( abs( getDotProduct(p) ) <= eps );
+    }
+
+    void rotateAroundVector( const Point &vec, double radAngle )
+    {
+
+        if ( isParallel(vec) )
+        {
+            return;
+        }
+
+//        cout << vec.x << " " << vec.y << " " << vec.z << endl;
+
+        Point unitVec = vec * ( 1 / vec.getDisFromMain() );
+
+
+//        cout << unitVec.x << " " << unitVec.y << " " << unitVec.z << endl;
+
+//        cout << unitVec.getDisFromMain() << endl;
+        assert( ( "unit vector is not unit", unitVec.isUnit() ) ) ;
+
+        Point perpendicularUnitVector = unitVec;
+        assert( ( " Given vector is not perpendicular ", this->isPerpendicular(perpendicularUnitVector) )   );
+
+
+        Point crossVector = perpendicularUnitVector.getCrossProduct(*this);
+
+        this->x = this->x * cos(radAngle) + crossVector.x * sin(radAngle);
+        this->y = this->y * cos(radAngle) + crossVector.y * sin(radAngle);
+        this->z = this->z * cos(radAngle) + crossVector.z * sin(radAngle);
+
+    }
+
+
+
 };
+
+//Point getRotatedVecAroundPerpendicularAxis( const Point &vec, const Point &perpendicularUnitVector, double radAngle )
+//{
+//    assert( ( " Given vector is not perpendicular ", vec.getDotProduct(perpendicularUnitVector) == 0)   );
+//    assert( ( "Given vector is not unit", perpendicularUnitVector.getDisFromMain() == 1 ) ) ;
+//
+//    Point crossVector = perpendicularUnitVector.getCrossProduct(vec);
+//
+//    Point ret = vec * cos(radAngle) + crossVector * sin(radAngle);
+//    return ret;
+//}
 
 const Point unitXVec(1,0,0);
 const Point unitYVec(0,1,0);
@@ -118,9 +208,10 @@ class CameraOrientation
 
 private:
 
+
     Point cameraPosition = Point(-MY_INF, 0, 0);
     Point upDirection = unitZVec;
-    Point rightDirection = unitYVec;
+    Point rightDirection =  unitYVec * (-1);
     Point forwardDirection = unitXVec;
 
 public:
@@ -148,6 +239,77 @@ public:
     void moveBackward()
     {
         cameraPosition -= forwardDirection;
+    }
+
+    void moveRight()
+    {
+        cameraPosition += rightDirection;
+    }
+
+    void moveLeft()
+    {
+        cameraPosition -= rightDirection;
+    }
+
+    void moveUp()
+    {
+        cameraPosition += upDirection;
+    }
+
+    void moveDown()
+    {
+        cameraPosition -= upDirection;
+    }
+
+
+    void rotateAround( Point axis, double radAng )
+    {
+
+        assert( upDirection.isUnit() );
+        assert( rightDirection.isUnit() );
+        assert( forwardDirection.isUnit() );
+
+
+        upDirection.rotateAroundVector(axis, radAng);
+        rightDirection.rotateAroundVector(axis, radAng);
+        forwardDirection.rotateAroundVector(axis, radAng);
+
+        assert( upDirection.isUnit() );
+        assert( rightDirection.isUnit() );
+        assert( forwardDirection.isUnit() );
+    }
+
+
+    void rotateLeft()
+    {
+        rotateAround(upDirection, eps);
+    }
+
+    void rotateRight()
+    {
+        rotateAround(upDirection, -eps);
+    }
+
+
+    // These 4 methods are not tested yet
+    void rotateUp()
+    {
+        rotateAround(rightDirection, eps);
+    }
+
+    void rotateDown()
+    {
+        rotateAround(rightDirection, -eps);
+    }
+
+    void tiltClockWise()
+    {
+        rotateAround(forwardDirection, eps);
+    }
+
+    void tiltCounterClockwise()
+    {
+        rotateAround(forwardDirection, -eps);
     }
 };
 
@@ -291,8 +453,8 @@ void drawCircle(double radius,int segments)
     //generate points
     for(int i=0;i<=segments;i++)
     {
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
+        points[i].x=radius*cos(((double)i/(double)segments)*2*PI);
+        points[i].y=radius*sin(((double)i/(double)segments)*2*PI);
     }
     //draw segments using generated points
     for(int i=0;i<segments;i++)
@@ -316,8 +478,8 @@ void drawOneFourthCylinder(double radius, double height, int segments) // this m
     // generate upper and lower cirlce
     for (int i = 0; i <= segments; i++)
     {
-        pointAr[0][i].x = pointAr[1][i].x = radius*cos(((double)i/(double)segments)*2*pi);
-        pointAr[0][i].y = pointAr[1][i].y = radius*sin(((double)i/(double)segments)*2*pi);
+        pointAr[0][i].x = pointAr[1][i].x = radius*cos(((double)i/(double)segments)*2*PI);
+        pointAr[0][i].y = pointAr[1][i].y = radius*sin(((double)i/(double)segments)*2*PI);
 
         // fixing the z coordinate of upper circle
         pointAr[0][i].z = height/2;
@@ -385,12 +547,12 @@ void drawOneEighthSphere(double radius,int slices,int stacks)
 	//generate points
 	for(i=0;i<=stacks;i++)
 	{
-		h=radius*sin(((double)i/(double)stacks)*(pi/2));
-		r=radius*cos(((double)i/(double)stacks)*(pi/2));
+		h=radius*sin(((double)i/(double)stacks)*(PI/2));
+		r=radius*cos(((double)i/(double)stacks)*(PI/2));
 		for(j=0;j<=slices;j++)
 		{
-			points[i][j].x=r*cos(((double)j/(double)slices)*2*pi);
-			points[i][j].y=r*sin(((double)j/(double)slices)*2*pi);
+			points[i][j].x=r*cos(((double)j/(double)slices)*2*PI);
+			points[i][j].y=r*sin(((double)j/(double)slices)*2*PI);
 			points[i][j].z=h;
 		}
 	}
@@ -468,14 +630,25 @@ void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
 		case '1':
-            if (cameraDistance > 0)
-            {
-                cameraDistance = max((double)eps, cameraDistance-1);
-            }
+            cameraOrientation.rotateLeft();
 			break;
-
         case '2':
-            cameraDistance += 1;   // no limit of taking the camera away
+            cameraOrientation.rotateRight();
+            break;
+
+        case '3':
+            cameraOrientation.rotateUp();
+			break;
+        case '4':
+            cameraOrientation.rotateDown();
+            break;
+
+        case '5':
+            cameraOrientation.tiltClockWise();
+			break;
+        case '6':
+            cameraOrientation.tiltCounterClockwise();
+            break;
 
 		default:
 			break;
@@ -493,15 +666,17 @@ void specialKeyListener(int key, int x,int y){
 			break;
 
 		case GLUT_KEY_RIGHT:
-			cameraAngle += 0.03;
+			cameraOrientation.moveRight();
 			break;
 		case GLUT_KEY_LEFT:
-			cameraAngle -= 0.03;
+			cameraOrientation.moveLeft();
 			break;
 
 		case GLUT_KEY_PAGE_UP:
+            cameraOrientation.moveUp();
 			break;
 		case GLUT_KEY_PAGE_DOWN:
+            cameraOrientation.moveDown();
 			break;
 
 		case GLUT_KEY_INSERT:
@@ -785,7 +960,7 @@ void display(){
 	glMatrixMode(GL_MODELVIEW);
 
 
-	/****************************
+	/****************************ŝ
 	/ Add your objects from here
 	****************************/
 	//add objects
@@ -831,8 +1006,8 @@ void drawCone(double radius,double height,int segments)
     //generate points
     for(i=0;i<=segments;i++)
     {
-        points[i].x=radius*cos(((double)i/(double)segments)*2*pi);
-        points[i].y=radius*sin(((double)i/(double)segments)*2*pi);
+        points[i].x=radius*cos(((double)i/(double)segments)*2*PI);
+        points[i].y=radius*sin(((double)i/(double)segments)*2*PI);
     }
     //draw triangles using generated points
     for(i=0;i<segments;i++)
