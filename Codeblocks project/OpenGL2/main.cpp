@@ -286,7 +286,7 @@ void draw12Cylinders()
 
 
 
-void drawSphere(double radius,int slices,int stacks)
+void drawOneEighthSphere(double radius,int slices,int stacks)
 {
     assert( slices < SIZE );
     assert( stacks < SIZE );
@@ -306,11 +306,13 @@ void drawSphere(double radius,int slices,int stacks)
 			points[i][j].z=h;
 		}
 	}
+
+
 	//draw quads using generated points
 	for(i=0;i<stacks;i++)
 	{
 //        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-		for(j=0;j<slices;j++)
+		for(j=0;j<slices/4;j++)
 		{
 			glBegin(GL_QUADS);{
 			    //upper hemisphere
@@ -318,11 +320,14 @@ void drawSphere(double radius,int slices,int stacks)
 				glVertex3f(points[i][j+1].x,points[i][j+1].y,points[i][j+1].z);
 				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,points[i+1][j+1].z);
 				glVertex3f(points[i+1][j].x,points[i+1][j].y,points[i+1][j].z);
+
+
+                // We will not draw lower hemisphere
                 //lower hemisphere
-                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
+//                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
+//				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
+//				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
+//				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
 			}glEnd();
 		}
 	}
@@ -331,7 +336,7 @@ void drawSphere(double radius,int slices,int stacks)
 
 void drawCustomSphere()
 {
-    drawSphere(paramT, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+    drawOneEighthSphere(paramT, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
 }
 
 void draw8Spheres()
@@ -424,7 +429,7 @@ void mouseListener(int button, int state, int x, int y){	//x, y is the x-y of th
 	switch(button){
 		case GLUT_LEFT_BUTTON:
 			if(state == GLUT_DOWN){		// 2 times?? in ONE click? -- solution is checking DOWN or UP
-				drawaxes=1-drawaxes;
+//				drawaxes=1-drawaxes;
 			}
 			break;
 
@@ -490,8 +495,8 @@ void offlienDisplay()
 
 
 	drawAxes();
-	draw6Squares();
-    draw12Cylinders();
+//	draw6Squares();
+//    draw12Cylinders();
     draw8Spheres();
 
 

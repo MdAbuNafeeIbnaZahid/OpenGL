@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1522926595 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/main.cpp
+1523069213 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/main.cpp
 	<GLUT/glut.h>
 	<GL/glut.h>
 	<stdlib.h>
@@ -16,14 +16,14 @@
 	<GL/glu.h>
 	<stdlib.h>
 
-1522734679 /usr/include/GL/gl.h
+1522950426 /usr/include/GL/gl.h
 	"gl_mangle.h"
 	<windows.h>
 	<GL/glext.h>
 
-1522734679 /usr/include/GL/gl_mangle.h
+1522950426 /usr/include/GL/gl_mangle.h
 
-1522734679 /usr/include/GL/glext.h
+1522950426 /usr/include/GL/glext.h
 	<windows.h>
 	<stddef.h>
 	<inttypes.h>
