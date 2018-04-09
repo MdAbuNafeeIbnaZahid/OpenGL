@@ -285,7 +285,8 @@ void draw12Cylinders()
 }
 
 
-
+// this one eighth sphere's center is at (0,0,0)
+// it covers the positive sides of x, y, z axis
 void drawOneEighthSphere(double radius,int slices,int stacks)
 {
     assert( slices < SIZE );
@@ -333,11 +334,40 @@ void drawOneEighthSphere(double radius,int slices,int stacks)
 	}
 }
 
-
-void drawCustomSphere()
+// This one eighth sphere is drawn with the center (A-paramT, A-paramT, A-paramT)
+// It is alongh the (+x,+y,+Z)
+void drawOneEighthSphere()
 {
-    drawOneEighthSphere(paramT, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+    glPushMatrix();{
+        glTranslated(A-paramT, A-paramT, A-paramT);
+        drawOneEighthSphere(paramT, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+    }glPopMatrix();
 }
+
+
+void drawUpper4OneEighthSphere()
+{
+    Point rotAxis(0,0,1);
+    for ( int rotAngle = 0; rotAngle < 360; rotAngle += RIGHT_ANGLE_DEGREE )
+    {
+        glPushMatrix();{
+            Rotation rotation(rotAngle, rotAxis);
+            myRotate(rotation);
+            drawOneEighthSphere();
+        }glPopMatrix();
+    }
+}
+
+void drawLower4OneEighthSphere()
+{
+    glPushMatrix();{
+        // Will rotate 180 degree around the x axis
+        myRotate( rightAngleRotAroundXAxis );
+        myRotate( rightAngleRotAroundXAxis );
+        drawUpper4OneEighthSphere();
+    }glPopMatrix();
+}
+
 
 void draw8Spheres()
 {
@@ -346,15 +376,18 @@ void draw8Spheres()
     // Rotation doesn't make sense in case of sphere
 
     double d = A-paramT; // I am taking new variable d just to make it easier to write
+    drawUpper4OneEighthSphere();
+    drawLower4OneEighthSphere();
 
-    drawRotatedTranslated(noRotation, -d, -d, -d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, -d, -d, +d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, -d, +d, -d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, -d, +d, +d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, +d, -d, -d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, +d, -d, +d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, +d, +d, -d, drawCustomSphere );
-    drawRotatedTranslated(noRotation, +d, +d, +d, drawCustomSphere );
+
+//    drawRotatedTranslated(noRotation, -d, -d, -d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, -d, -d, +d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, -d, +d, -d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, -d, +d, +d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, +d, -d, -d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, +d, -d, +d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, +d, +d, -d, drawCustomSphere );
+//    drawRotatedTranslated(noRotation, +d, +d, +d, drawCustomSphere );
 
 
 }
