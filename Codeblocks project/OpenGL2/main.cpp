@@ -64,6 +64,8 @@ const Point xVec(1,0,0);
 const Point yVec(0,1,0);
 const Point zVec(0,0,1);
 
+const Point noTranslation(0,0,0);
+
 struct Rotation
 {
     double angle;
@@ -218,7 +220,7 @@ void drawCircle(double radius,int segments)
     }
 }
 
-void drawCylinder(double radius, double height, int segments) // this method draws a cylinder along the z axis
+void drawOneFourthCylinder(double radius, double height, int segments) // this method draws a cylinder along the z axis
 // the middle point of the cylinder is (0,0,0)
 {
 
@@ -239,49 +241,48 @@ void drawCylinder(double radius, double height, int segments) // this method dra
     }
 
 
-    // This for loop is not complete
-    for (int i = 0; i < segments; i++)
+    // I am drawing the one foruth of the cylinder
+    for (int i = 0; i <= segments/4; i++)
     {
         drawQuad( pointAr[0][i], pointAr[0][i+1], pointAr[1][i+1], pointAr[1][i] );
     }
 }
 
-void drawCustomCylinder()
+// This custom one fourth cylinder is along the Z axis
+// It covers the (+x, +y) plane
+void drawCustomOneFourthCylinder()
 {
-    drawCylinder(paramT, 2*(A-paramT), DRAW_SEG_COUNT);
+    glPushMatrix();{
+        glTranslated(A-paramT, A-paramT, 0);
+        drawOneFourthCylinder(paramT, 2*(A-paramT), DRAW_SEG_COUNT);
+    }glPopMatrix();
 }
+
+// These 4 one fourth cylinders are alongh the Z axis
+void draw4OneFourthCylinderAlongZAxis()
+{
+    for ( int rotAngle = 0; rotAngle < 360; rotAngle += RIGHT_ANGLE_DEGREE )
+    {
+        glPushMatrix();{
+            Rotation rotation( rotAngle, zVec  );
+            myRotate(rotation);
+            drawCustomOneFourthCylinder();
+        }glPopMatrix();
+    }
+}
+
+
 
 
 void draw12Cylinders()
 {
     glColor3f(0, 1, 0); // cylinders have color green
 
-    // Custom cylinder is parallel to Z axis
 
-    double d = A-paramT;
+    draw4OneFourthCylinderAlongZAxis();
+    drawRotatedTranslated(rightAngleRotAroundXAxis, noTranslation, draw4OneFourthCylinderAlongZAxis);
+    drawRotatedTranslated(rightAngleRotAroundYAxis, noTranslation, draw4OneFourthCylinderAlongZAxis);
 
-    // Will draw 4 cylinders along the Z axis
-    drawRotatedTranslated(noRotation, -d, -d, 0, drawCustomCylinder);
-    drawRotatedTranslated(noRotation, -d, d, 0, drawCustomCylinder);
-    drawRotatedTranslated(noRotation, d, -d, 0, drawCustomCylinder);
-    drawRotatedTranslated(noRotation, d, d, 0, drawCustomCylinder);
-
-
-    // Will draw 4 cylinders along the X axis
-    // the custom cylinder is along z axis
-    // Need to rotate it along the Y axis
-    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, -d, -d, drawCustomCylinder);
-    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, -d, d, drawCustomCylinder);
-    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, d, -d, drawCustomCylinder);
-    drawRotatedTranslated(rightAngleRotAroundYAxis, 0, d, +d, drawCustomCylinder);
-
-    // Will 4 cylinders along the Y axis
-    // The custom cylinder is along Z axis
-    // Need to rotate it along the X axis
-    drawRotatedTranslated(rightAngleRotAroundXAxis, -d, 0, -d, drawCustomCylinder);
-    drawRotatedTranslated(rightAngleRotAroundXAxis, -d, 0, d, drawCustomCylinder);
-    drawRotatedTranslated(rightAngleRotAroundXAxis, d, 0, -d, drawCustomCylinder);
-    drawRotatedTranslated(rightAngleRotAroundXAxis, d, 0, +d, drawCustomCylinder);
 }
 
 
@@ -313,7 +314,7 @@ void drawOneEighthSphere(double radius,int slices,int stacks)
 	for(i=0;i<stacks;i++)
 	{
 //        glColor3f((double)i/(double)stacks,(double)i/(double)stacks,(double)i/(double)stacks);
-		for(j=0;j<slices/4;j++)
+		for(j=0; j <= slices/4; j++)
 		{
 			glBegin(GL_QUADS);{
 			    //upper hemisphere
@@ -324,11 +325,7 @@ void drawOneEighthSphere(double radius,int slices,int stacks)
 
 
                 // We will not draw lower hemisphere
-                //lower hemisphere
-//                glVertex3f(points[i][j].x,points[i][j].y,-points[i][j].z);
-//				glVertex3f(points[i][j+1].x,points[i][j+1].y,-points[i][j+1].z);
-//				glVertex3f(points[i+1][j+1].x,points[i+1][j+1].y,-points[i+1][j+1].z);
-//				glVertex3f(points[i+1][j].x,points[i+1][j].y,-points[i+1][j].z);
+
 			}glEnd();
 		}
 	}
@@ -336,7 +333,7 @@ void drawOneEighthSphere(double radius,int slices,int stacks)
 
 // This one eighth sphere is drawn with the center (A-paramT, A-paramT, A-paramT)
 // It is alongh the (+x,+y,+Z)
-void drawOneEighthSphere()
+void drawCustomOneEighthSphere()
 {
     glPushMatrix();{
         glTranslated(A-paramT, A-paramT, A-paramT);
@@ -353,7 +350,7 @@ void drawUpper4OneEighthSphere()
         glPushMatrix();{
             Rotation rotation(rotAngle, rotAxis);
             myRotate(rotation);
-            drawOneEighthSphere();
+            drawCustomOneEighthSphere();
         }glPopMatrix();
     }
 }
@@ -369,7 +366,7 @@ void drawLower4OneEighthSphere()
 }
 
 
-void draw8Spheres()
+void draw8OneEighthSpheres()
 {
     glColor3f(1, 0, 0); // cylinders have color green
 
@@ -378,16 +375,6 @@ void draw8Spheres()
     double d = A-paramT; // I am taking new variable d just to make it easier to write
     drawUpper4OneEighthSphere();
     drawLower4OneEighthSphere();
-
-
-//    drawRotatedTranslated(noRotation, -d, -d, -d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, -d, -d, +d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, -d, +d, -d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, -d, +d, +d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, +d, -d, -d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, +d, -d, +d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, +d, +d, -d, drawCustomSphere );
-//    drawRotatedTranslated(noRotation, +d, +d, +d, drawCustomSphere );
 
 
 }
@@ -528,9 +515,9 @@ void offlienDisplay()
 
 
 	drawAxes();
-//	draw6Squares();
-//    draw12Cylinders();
-    draw8Spheres();
+	draw6Squares();
+    draw12Cylinders();
+    draw8OneEighthSpheres();
 
 
 //	drawGrid();

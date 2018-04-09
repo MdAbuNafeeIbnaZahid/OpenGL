@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1523069213 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/main.cpp
+1523239990 source:/home/nafee/Desktop/OpenGL/Codeblocks project/OpenGL2/main.cpp
 	<GLUT/glut.h>
 	<GL/glut.h>
 	<stdlib.h>
