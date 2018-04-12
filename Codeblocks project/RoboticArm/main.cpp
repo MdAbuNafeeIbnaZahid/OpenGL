@@ -479,6 +479,17 @@ public:
         fingerAngleAroundBigAxis.increase();
     }
 
+    void decreaseFingerAngleAroundPerpendicularBigAxis()
+    {
+        fingerAngleAroundPerpendicularBigAxis.decrease();
+    }
+
+    void increaseFingerAngleAroundPerpendicularBigAxis()
+    {
+        fingerAngleAroundPerpendicularBigAxis.increase();
+    }
+
+
     void draw()
     {
         glPushMatrix();{
@@ -487,6 +498,8 @@ public:
             drawBigArmAndBelow();
         }glPopMatrix();
     }
+
+private:
 
     void drawBigArmAndBelow()
     {
@@ -532,6 +545,8 @@ public:
 
         glPushMatrix();{
             glTranslated(0,30,-30);
+            myRotate(fingerAngleAroundPerpendicularBigAxis, unitYVec);
+            drawEllipsoid(smallRadius);
         }glPopMatrix();
     }
 
@@ -586,6 +601,14 @@ void keyboardListener(unsigned char key, int x,int y){
 			break;
         case '8':
             robot.decreaseFingerAngleAroundBigAxis();
+            break;
+
+
+        case '9':
+            robot.increaseFingerAngleAroundPerpendicularBigAxis();
+			break;
+        case '0':
+            robot.decreaseFingerAngleAroundPerpendicularBigAxis();
             break;
 
 
