@@ -414,7 +414,7 @@ private:
     const double scaleSize = 5;
 
     const double bigRadius = 10;
-    const double smallRadius = 10;
+    const double smallRadius = 5;
 
     Angle bigArmAngleAroundX;
     Angle bigArmAngleAroundY;
@@ -423,6 +423,9 @@ private:
 
     Angle triangleAngleAroundZ;
 
+    Angle fingerAngleAroundBigAxis;
+
+    Angle fingerAngleAroundPerpendicularBigAxis;
 
 public:
 
@@ -466,12 +469,22 @@ public:
         triangleAngleAroundZ.increase();
     }
 
-    void drawEllipsoid(double radius) // Two end points of the arms are at (0,0,0) and (0,0,-2*radius*scaleSize)
+    void decreaseFingerAngleAroundBigAxis()
+    {
+        fingerAngleAroundBigAxis.decrease();
+    }
+
+    void increaseFingerAngleAroundBigAxis()
+    {
+        fingerAngleAroundBigAxis.increase();
+    }
+
+    void draw()
     {
         glPushMatrix();{
-            glTranslated(0, 0, -radius*scaleSize);
-            glScaled(1, 1, scaleSize);
-            glutWireSphere(radius, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+            myRotate(bigArmAngleAroundX.getVal(), unitXVec);
+            myRotate(bigArmAngleAroundY.getVal(), unitYVec);
+            drawBigArmAndBelow();
         }glPopMatrix();
     }
 
@@ -485,6 +498,17 @@ public:
         }glPopMatrix();
     }
 
+    void drawEllipsoid(double radius) // Two end points of the arms are at (0,0,0) and (0,0,-2*radius*scaleSize)
+    {
+        glPushMatrix();{
+            glTranslated(0, 0, -radius*scaleSize);
+            glScaled(1, 1, scaleSize);
+            glutWireSphere(radius, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+        }glPopMatrix();
+    }
+
+
+
     void drawSmallArmAndBelow()
     {
         drawEllipsoid(bigRadius); // small arm is drawn
@@ -497,7 +521,18 @@ public:
 
     void drawTriangleAndBelow()
     {
-        drawTriangle();
+        drawTriangle(); // This triangle is drawn at points (0,0,0) , (0,-30,-30), (0,30,-30)
+
+        glPushMatrix();{
+            glTranslated(0,-30,-30);
+            myRotate(fingerAngleAroundBigAxis, unitZVec);
+            drawEllipsoid(smallRadius);
+        }glPopMatrix();
+
+
+        glPushMatrix();{
+            glTranslated(0,30,-30);
+        }glPopMatrix();
     }
 
     void drawTriangle()
@@ -512,14 +547,8 @@ public:
 
 
 
-    void draw()
-    {
-        glPushMatrix();{
-            myRotate(bigArmAngleAroundX.getVal(), unitXVec);
-            myRotate(bigArmAngleAroundY.getVal(), unitYVec);
-            drawBigArmAndBelow();
-        }glPopMatrix();
-    }
+
+
 };
 
 
@@ -550,6 +579,16 @@ void keyboardListener(unsigned char key, int x,int y){
         case '6':
             robot.decreaseTriangleAngleAroundZ();
             break;
+
+
+        case '7':
+            robot.increaseFingerAngleAroundBigAxis();
+			break;
+        case '8':
+            robot.decreaseFingerAngleAroundBigAxis();
+            break;
+
+
 
         case 'q':
             robot.increaseBigArmAngleAroundY();
