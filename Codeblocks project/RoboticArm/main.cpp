@@ -27,7 +27,7 @@
 #define A 100
 #define MY_INF 200
 #define eps 1e-1
-#define DRAW_SEG_COUNT 50
+#define DRAW_SEG_COUNT 5
 #define RIGHT_ANGLE_DEGREE 90
 #define SIZE 109
 
@@ -201,6 +201,39 @@ const Rotation rightAngleRotAroundZAxis( RIGHT_ANGLE_DEGREE, unitZVec );
 
 
 
+class Angle
+{
+    const double minVal = 0;
+    const double maxVal = RIGHT_ANGLE_DEGREE;
+    const double defaultVal = RIGHT_ANGLE_DEGREE/2;
+
+    double val = defaultVal;
+
+public:
+
+    double getVal()
+    {
+        return val;
+    }
+
+    void increase()
+    {
+        if (val < maxVal)
+        {
+            val += 10*eps;
+        }
+    }
+
+    void decrease()
+    {
+        if ( val > minVal )
+        {
+            val -= 10*eps;
+        }
+    }
+};
+
+
 class CameraOrientation
 {
 
@@ -240,7 +273,10 @@ public:
 
     void decreaseDisOnXY()
     {
-        disOnXY -= heightDisChange;
+        if ( disOnXY > 0 )
+        {
+            disOnXY -= heightDisChange;
+        }
     }
 
     void increaseDisOnXY()
@@ -290,11 +326,13 @@ void myLookAt( CameraOrientation cameraOrientation )
     Point upDirection = cameraOrientation.getUpDirection();
     Point lookAtPoint = cameraOrientation.getLookAtPoint();
 
-    dbg(cameraPosition.z);
+//    dbg(cameraPosition.z);
     gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
     lookAtPoint.x, lookAtPoint.y, lookAtPoint.z,
     upDirection.x, upDirection.y, upDirection.z);
 }
+
+
 
 
 
@@ -303,6 +341,16 @@ void myRotate(Rotation rot)
     double angle = rot.angle;
     Point vec = rot.vec;
     glRotated( angle, vec.x, vec.y, vec.z );
+}
+
+void myRotate(double angle, Point vec)
+{
+    glRotated(angle, vec.x, vec.y, vec.z);
+}
+
+void myRotate(Angle angle, Point vec)
+{
+    glRotated(angle.getVal(), vec.x, vec.y, vec.z);
 }
 
 void myTranslate( Point vec )
@@ -357,22 +405,157 @@ void drawAxes()
 
 
 
+
+class Robot
+{
+private:
+
+
+    const double scaleSize = 5;
+
+    const double bigRadius = 10;
+    const double smallRadius = 10;
+
+    Angle bigArmAngleAroundX;
+    Angle bigArmAngleAroundY;
+
+    Angle smallArmAngleAroundX;
+
+    Angle triangleAngleAroundZ;
+
+
+public:
+
+    void increaseBigArmAngleAroundX()
+    {
+        bigArmAngleAroundX.increase();
+    }
+
+    void decreaseBigArmAngleAroundX()
+    {
+        bigArmAngleAroundX.decrease();
+    }
+
+    void increaseBigArmAngleAroundY()
+    {
+        bigArmAngleAroundY.increase();
+    }
+
+    void decreaseBigArmAngleAroundY()
+    {
+        bigArmAngleAroundY.decrease();
+    }
+
+    void increaseSmallArmAngleAroundX()
+    {
+        smallArmAngleAroundX.increase();
+    }
+
+    void decreaseSmallArmAngleAroundX()
+    {
+        smallArmAngleAroundX.decrease();
+    }
+
+    void decreaseTriangleAngleAroundZ()
+    {
+        triangleAngleAroundZ.decrease();
+    }
+
+    void increaseTriangleAngleAroundZ()
+    {
+        triangleAngleAroundZ.increase();
+    }
+
+    void drawEllipsoid(double radius) // Two end points of the arms are at (0,0,0) and (0,0,-2*radius*scaleSize)
+    {
+        glPushMatrix();{
+            glTranslated(0, 0, -radius*scaleSize);
+            glScaled(1, 1, scaleSize);
+            glutWireSphere(radius, DRAW_SEG_COUNT, DRAW_SEG_COUNT);
+        }glPopMatrix();
+    }
+
+    void drawBigArmAndBelow()
+    {
+        drawEllipsoid(bigRadius); // Two end points of the arms are at (0,0,0) and (0,0,-2*bigRadius*scaleSize)
+        glPushMatrix();{
+            glTranslated(0,0,-2*bigRadius*scaleSize);
+            myRotate(smallArmAngleAroundX.getVal(), unitXVec);
+            drawSmallArmAndBelow();
+        }glPopMatrix();
+    }
+
+    void drawSmallArmAndBelow()
+    {
+        drawEllipsoid(bigRadius); // small arm is drawn
+        glPushMatrix();{
+            glTranslated( 0,0,-2*bigRadius*scaleSize );
+            myRotate(triangleAngleAroundZ, unitZVec);
+            drawTriangleAndBelow();
+        }glPopMatrix();
+    }
+
+    void drawTriangleAndBelow()
+    {
+        drawTriangle();
+    }
+
+    void drawTriangle()
+    {
+        double halfBase = 30;
+        glBegin(GL_TRIANGLES);{
+            glVertex3d(0,0,0);
+            glVertex3d(0,-halfBase,-halfBase);
+            glVertex3d(0,halfBase,-halfBase);
+        }glEnd();
+    }
+
+
+
+    void draw()
+    {
+        glPushMatrix();{
+            myRotate(bigArmAngleAroundX.getVal(), unitXVec);
+            myRotate(bigArmAngleAroundY.getVal(), unitYVec);
+            drawBigArmAndBelow();
+        }glPopMatrix();
+    }
+};
+
+
+Robot robot;
+
+
+
 void keyboardListener(unsigned char key, int x,int y){
 	switch(key){
 
 		case '1':
+            robot.decreaseBigArmAngleAroundX();
 			break;
         case '2':
+            robot.increaseBigArmAngleAroundX();
             break;
 
         case '3':
+            robot.decreaseSmallArmAngleAroundX();
 			break;
         case '4':
+            robot.increaseSmallArmAngleAroundX();
             break;
 
         case '5':
+            robot.increaseTriangleAngleAroundZ();
 			break;
         case '6':
+            robot.decreaseTriangleAngleAroundZ();
+            break;
+
+        case 'q':
+            robot.increaseBigArmAngleAroundY();
+            break;
+        case 'w':
+            robot.decreaseBigArmAngleAroundY();
             break;
 
 		default:
@@ -488,6 +671,7 @@ void offlienDisplay()
 	****************************/
 
 	drawAxes();
+    robot.draw();
 
 
 	//ADD this line in the end --- if you use double buffer (i.e. GL_DOUBLE)
